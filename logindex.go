@@ -2,6 +2,7 @@ package logindex
 
 import (
 	"errors"
+	"fmt"
 	"github.com/howeyc/fsnotify"
 	"os"
 )
@@ -18,22 +19,27 @@ type Log struct {
 	File     *os.File
 	FileSize int64
 	Watcher  *fsnotify.Watcher
+	Pair     *ModPair
 }
 
 type Index struct {
 }
 
 type ModPair struct {
-	Last int64
-	This int64
+	Last  int64
+	This  int64
+	Delta int64
 }
 
-func (m *ModPair) delta() (delta int64, err error) {
+func (m *ModPair) setDelta() (err error) {
 	if m.This <= 0 || m.Last <= 0 {
 		err = ErrIndexZero
-		return 0, err
+		return err
 	}
-	return (m.This - m.Last), nil
+
+	m.Delta = (m.This - m.Last)
+
+	return nil
 }
 
 func New(filename string) (log *Log, err error) {
@@ -42,15 +48,20 @@ func New(filename string) (log *Log, err error) {
 		return nil, err
 	}
 
-	info, err := os.Stat(filename)
+	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err
 	}
 
-	filesize := info.Size()
+	log = &Log{
+		File:     file,
+		FileName: filename,
+		FileSize: 0,
+		Watcher:  watcher,
+		Pair:     &ModPair{0, 0, 0},
+	}
 
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
+	if err = log.updateFileSize(); err != nil {
 		return nil, err
 	}
 
@@ -59,6 +70,7 @@ func New(filename string) (log *Log, err error) {
 			select {
 			case ev := <-watcher.Event:
 				if ev != nil && ev.IsModify() && ev.Name == filename {
+					log.moveAndFlush()
 				}
 			case err := <-watcher.Error:
 				if err != nil {
@@ -67,14 +79,70 @@ func New(filename string) (log *Log, err error) {
 		}
 	}()
 
-	log = &Log{
-		File:     file,
-		FileName: filename,
-		FileSize: filesize,
-		Watcher:  watcher,
+	return log, nil
+}
+
+func (log *Log) moveAndFlush() {
+	if ok := log.movePair(); ok {
+		log.flush()
+	}
+}
+
+func (log *Log) movePair() (ok bool) {
+	log.updateFileSize()
+
+	if log.Pair.Last == 0 {
+		log.Pair.Last = log.FileSize
+		ok = false
+	} else {
+		log.Pair.This = log.FileSize
+		ok = true
 	}
 
-	return log, nil
+	log.Pair.setDelta()
+
+	log.Pair.Last = log.FileSize
+
+	return
+}
+
+func (log *Log) updateFileSize() (err error) {
+	info, err := os.Stat(log.FileName)
+	if err != nil {
+		return err
+	}
+
+	log.FileSize = info.Size()
+	return nil
+}
+
+func (log *Log) flush() {
+	delta := log.Pair.Delta
+	file := log.File
+
+	if delta > 0 {
+		data := make([]byte, (delta))
+
+		off, err := file.Seek((-1 * delta), 2)
+		if err != nil {
+			return
+		}
+
+		if off != 0 {
+			bytesRead, err := file.Read(data)
+
+			if err != nil {
+				return
+			}
+
+			if bytesRead != 0 {
+				fmt.Println(string(data))
+			}
+		}
+	} else {
+		return
+	}
+
 }
 
 func (log *Log) watchable() (err error) {
@@ -103,39 +171,3 @@ func (log *Log) Watch() (err error) {
 
 	return
 }
-
-/*
-
-func readAndFlush(watchfile string, pair *ModPair) {
-	if pair.Last == 0 {
-		pair.Last = size
-	} else {
-		pair.This = size
-
-		delta := pair.delta()
-
-		if delta > 0 {
-			data := make([]byte, (delta))
-
-			off, err := file.Seek((-1 * delta), 2)
-			if err != nil {
-				log.Print("Seekerr ", err)
-				return
-			}
-
-			if off != 0 {
-				bytesRead, err := file.Read(data)
-
-				if err != nil {
-					log.Print(err)
-					return
-				}
-				log.Print(bytesRead, " bytes, data: ", string(data))
-			}
-		} else {
-			return
-		}
-		pair.Last = size
-	}
-}
-*/
