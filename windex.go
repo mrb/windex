@@ -1,4 +1,4 @@
-package logindexer
+package windex
 
 import (
 	"errors"

@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/mrb/logindexer"
+	"github.com/mrb/windex"
 	"log"
 	"time"
 )
 
 func main() {
-	indexed_log, err := logindexer.New("logs.txt")
+	indexed_log, err := windex.New("logs.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
