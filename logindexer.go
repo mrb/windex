@@ -1,4 +1,4 @@
-package logindex
+package logindexer
 
 import (
 	"errors"
@@ -22,7 +22,7 @@ type Log struct {
 	Pair     *ModPair
 }
 
-type Index struct {
+type Indexer struct {
 }
 
 type ModPair struct {

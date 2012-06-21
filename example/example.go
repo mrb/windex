@@ -1,21 +1,21 @@
 package main
 
 import (
-	"github.com/mrb/logindex"
+	"github.com/mrb/logindexer"
 	"log"
 	"time"
 )
 
 func main() {
-	logg, err := logindex.New("logs.txt")
+	indexed_log, err := logindexer.New("logs.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Print(logg, " ", err)
+	log.Print(indexed_log, " ", err)
 
 	for {
 		time.Sleep(500 * time.Millisecond)
-		err = logg.Watch()
+		err = indexed_log.Watch()
 		if err != nil {
 			log.Print(err)
 		}
