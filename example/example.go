@@ -3,15 +3,22 @@ package main
 import (
 	"github.com/mrb/windex"
 	"log"
+	"os"
 	"time"
 )
 
 func main() {
-	indexed_log, err := windex.New("logs.txt")
+	if len(os.Args) == 1 {
+		log.Fatal("Please supply a log file to watch")
+	}
+
+	fname := os.Args[1]
+
+	indexed_log, err := windex.New(string(fname))
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Print(indexed_log, " ", err)
+	log.Println("Opening and watching", fname)
 
 	for {
 		time.Sleep(500 * time.Millisecond)

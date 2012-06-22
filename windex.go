@@ -3,8 +3,9 @@ package windex
 import (
 	"errors"
 	"fmt"
-	"github.com/howeyc/fsnotify"
 	"os"
+
+	"github.com/howeyc/fsnotify"
 )
 
 var (
@@ -47,6 +48,8 @@ func New(filename string) (log *Log, err error) {
 	if err != nil {
 		return nil, err
 	}
+
+	defer file.Close()
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
