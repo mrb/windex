@@ -3,37 +3,33 @@ package windex
 import (
 	//"github.com/mrb/windex"
 	"github.com/bmizerany/assert"
-	"log"
-	"os"
 	"testing"
 )
 
-func setupInputFile(t *testing.T) (file *os.File) {
-	file = os.NewFile(uintptr(os.O_CREATE), "input.test")
-	assert.T(t, file != nil)
+var (
+	LogLine = []byte(`[2012-06-23T00:00:00+00:00] Boom  Boom  Boom  Boom  Boom  Boom  Boom  Boom  Boom`)
+	Lines   = 50
+)
+
+func setupInputBuffer(t *testing.T) (input []byte) {
+	input = make([]byte, 0)
+	assert.T(t, input != nil)
 	return
 }
 
-func setupOutputFile(t *testing.T) (file *os.File) {
-	file = os.NewFile(uintptr(os.O_CREATE), "output.test")
-	assert.T(t, file != nil)
+func setupOutputBuffer(t *testing.T) (output []byte) {
+	output = make([]byte, 0)
+	assert.T(t, output != nil)
 	return
 }
 
-func TestFileSetup(t *testing.T) {
-	input := setupInputFile(t)
+func TestFillInputBuffer(t *testing.T) {
+	input := setupInputBuffer(t)
 	assert.T(t, input != nil)
 
-	output := setupOutputFile(t)
-	assert.T(t, output != nil)
-}
-
-func TestWriteToInputFile(t *testing.T) {
-	input := setupInputFile(t)
-
-	for i := 0; i < 10; i++ {
-		input.WriteString("Test\n")
+	for i := 0; i < Lines; i++ {
+		input = append(input, LogLine...)
 	}
 
-	log.Print(os.Stat("intput.test"))
+	assert.T(t, len(input) == (Lines*len(LogLine)))
 }

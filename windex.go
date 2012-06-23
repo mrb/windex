@@ -3,9 +3,8 @@ package windex
 import (
 	"errors"
 	"fmt"
-	"os"
-
 	"github.com/howeyc/fsnotify"
+	"os"
 )
 
 var (
