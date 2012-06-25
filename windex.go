@@ -2,7 +2,6 @@ package windex
 
 import (
 	"errors"
-	"fmt"
 	"github.com/howeyc/fsnotify"
 	"os"
 )
@@ -138,7 +137,7 @@ func (log *Log) flush() {
 			}
 
 			if bytesRead != 0 {
-				fmt.Println(string(data))
+				os.Stdout.Write(data)
 			}
 		}
 	} else {
