@@ -85,18 +85,11 @@ func TestOutputLength(t *testing.T) {
 	WindexLog, err := windex.New(TestLogFileName)
 	assert.T(t, err == nil)
 
-	OutputBuffer = make([]byte, int64(Lines*len(LogLine)))
+	OutputBuffer = make([]byte, int64(5*len(LogLine)))
 
 	r := bufio.NewReader(os.Stdout)
 
 	log.Print(WindexLog)
-
-	go func() {
-		b, err := r.Read(OutputBuffer)
-
-		assert.T(t, err == nil)
-		assert.T(t, b > 0)
-	}()
 
 	go func() {
 		for {
@@ -113,6 +106,10 @@ func TestOutputLength(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 		writeInputToLogFile(t)
 	}
+
+	b, err := r.Read(OutputBuffer)
+	assert.T(t, err == nil)
+	assert.T(t, b > 0)
 
 	log.Print(OutputBuffer)
 }

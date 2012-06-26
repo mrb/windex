@@ -14,20 +14,27 @@ var (
 )
 
 type Log struct {
-	FileName string
-	File     *os.File
-	FileSize int64
-	Watcher  *fsnotify.Watcher
-	Pair     *ModPair
+	FileName    string
+	File        *os.File
+	FileSize    int64
+	Watcher     *fsnotify.Watcher
+	Pair        *ModPair
+	FileIndexer *Indexer
 }
 
 type Indexer struct {
+	FileName string
+	File     *os.File
 }
 
 type ModPair struct {
 	Last  int64
 	This  int64
 	Delta int64
+}
+
+func (i *Indexer) flush() (err error) {
+
 }
 
 func (m *ModPair) setDelta() (err error) {
@@ -137,6 +144,7 @@ func (log *Log) flush() {
 			}
 
 			if bytesRead != 0 {
+				log.Indexer.flush()
 				os.Stdout.Write(data)
 			}
 		}
