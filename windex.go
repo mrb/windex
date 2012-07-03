@@ -1,56 +1,34 @@
 package windex
 
 import (
-	"errors"
-	"github.com/howeyc/fsnotify"
 	"os"
 )
 
-var (
-	ErrIndexZero       = errors.New("index error")
-	ErrNoFileName      = errors.New("missing file name")
-	ErrNoFile          = errors.New("missing file")
-	ErrInvalidFileSize = errors.New("file size invalid")
-)
+type Windex struct {
+  watcher *Watcher
+  logfile *LogFile
+  indexer *Indexer
+  logchan chan []byte
+}
 
-type Log struct {
-	FileName    string
-	File        *os.File
-	FileSize    int64
+/*
+
+watched_index, err = windex.New("logfile01.log")
+watched_index.Watch()
+watched_index.Index()
+// or .Index(StdoutIndex) where StdoutIndex implements
+// Index interface
+
+Windex methods orchestrate between logfile and indexer,
+getting signals from watcher to know when to act
+
+[]byte channel between logfile and indexer
+
+*/
+func New(filename string) (windex *Windex, err error) {
 	Watcher     *fsnotify.Watcher
-	Pair        *ModPair
-	FileIndexer *Indexer
-}
-
-type Indexer struct {
-	FileName string
-	File     *os.File
-}
-
-type ModPair struct {
-	Last  int64
-	This  int64
-	Delta int64
-}
-
-func (i *Indexer) flush() (err error) {
-
-}
-
-func (m *ModPair) setDelta() (err error) {
-	if m.This <= 0 || m.Last <= 0 {
-		err = ErrIndexZero
-		return err
-	}
-
-	m.Delta = (m.This - m.Last)
-
-	return nil
-}
-
-func New(filename string) (log *Log, err error) {
-	file, err := os.Open(filename)
-	if err != nil {
+	
+        if err != nil {
 		return nil, err
 	}
 
@@ -61,122 +39,13 @@ func New(filename string) (log *Log, err error) {
 		return nil, err
 	}
 
-	log = &Log{
-		File:     file,
-		FileName: filename,
-		FileSize: 0,
-		Watcher:  watcher,
-		Pair:     &ModPair{0, 0, 0},
-	}
+	logfile := &LogFile{}
 
 	if err = log.updateFileSize(); err != nil {
 		return nil, err
 	}
 
-	go func() {
-		for {
-			select {
-			case ev := <-watcher.Event:
-				if ev != nil && ev.IsModify() && ev.Name == filename {
-					log.moveAndFlush()
-				}
-			case err := <-watcher.Error:
-				if err != nil {
-				}
-			}
-		}
-	}()
-
 	return log, nil
 }
 
-func (log *Log) moveAndFlush() {
-	if ok := log.movePair(); ok {
-		log.flush()
-	}
-}
 
-func (log *Log) movePair() (ok bool) {
-	log.updateFileSize()
-
-	if log.Pair.Last == 0 {
-		log.Pair.Last = log.FileSize
-		ok = false
-	} else {
-		log.Pair.This = log.FileSize
-		ok = true
-	}
-
-	log.Pair.setDelta()
-
-	log.Pair.Last = log.FileSize
-
-	return
-}
-
-func (log *Log) updateFileSize() (err error) {
-	info, err := os.Stat(log.FileName)
-	if err != nil {
-		return err
-	}
-
-	log.FileSize = info.Size()
-	return nil
-}
-
-func (log *Log) flush() {
-	delta := log.Pair.Delta
-	file := log.File
-
-	if delta > 0 {
-		data := make([]byte, (delta))
-
-		off, err := file.Seek((-1 * delta), 2)
-		if err != nil {
-			return
-		}
-
-		if off != 0 {
-			bytesRead, err := file.Read(data)
-
-			if err != nil {
-				return
-			}
-
-			if bytesRead != 0 {
-				log.Indexer.flush()
-				os.Stdout.Write(data)
-			}
-		}
-	} else {
-		return
-	}
-
-}
-
-func (log *Log) watchable() (err error) {
-	if log.File == nil {
-		err = ErrNoFile
-	}
-
-	if log.FileName == "" {
-		err = ErrNoFileName
-	}
-
-	if log.FileSize < 0 {
-		err = ErrInvalidFileSize
-	}
-
-	return
-}
-
-func (log *Log) Watch() (err error) {
-	err = log.watchable()
-	if err != nil {
-		return
-	}
-
-	log.Watcher.Watch(log.FileName)
-
-	return
-}
