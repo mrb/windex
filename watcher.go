@@ -10,33 +10,12 @@ type Watcher struct {
 
 func NewWatcher() (watcher *Watcher, err error) {
 	return &Watcher{
-		watcher: &fsnotify.Watcher,
-	}
+		watcher: &fsnotify.Watcher{},
+	}, nil
 }
 
-func (log *LogFile) Watch() (err error) {
-	err = log.watchable()
-	if err != nil {
-		return
-	}
-
-	log.Watcher.Watch(log.FileName)
-
-	return
-}
-
-func (log *LogFile) watchable() (err error) {
-	if log.File == nil {
-		err = ErrNoFile
-	}
-
-	if log.FileName == "" {
-		err = ErrNoFileName
-	}
-
-	if log.FileSize < 0 {
-		err = ErrInvalidFileSize
-	}
+func (watcher *Watcher) Watch(filename string) (err error) {
+	watcher.Watch(filename)
 
 	return
 }

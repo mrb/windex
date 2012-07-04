@@ -9,7 +9,6 @@ type Windex struct {
 }
 
 /*
-
 windex, err = windex.New("logfile01.log")
 err = windex.Watch()
 err = windex.Index()
@@ -23,7 +22,6 @@ getting signals from watcher to know when to act
 
 []byte channel between logfile and indexer
 bool channel between windex and the outside world
-
 */
 func New(filename string) (windex *Windex, err error) {
 	logfile, err := NewLogFile(filename)
@@ -43,9 +41,9 @@ func New(filename string) (windex *Windex, err error) {
 }
 
 func (windex *Windex) Watch() (err error) {
-
+	return
 }
 
 func (windex *Windex) Index() (err error) {
-
+	return
 }

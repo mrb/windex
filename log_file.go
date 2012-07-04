@@ -19,7 +19,6 @@ type LogFileCursor struct {
 
 func NewLogFile(filename string) (log_file *LogFile, err error) {
 	file, err := os.Open(filename)
-
 	if err != nil {
 		return nil, err
 	}
