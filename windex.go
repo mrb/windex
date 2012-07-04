@@ -26,7 +26,7 @@ func New(filename string) (windex *Windex, err error) {
 	indexer := NewStdoutIndexer()
 
 	exit := make(chan bool)
-	log_data := make(chan []byte)
+	log_data := make(chan []byte, 5)
 
 	windex = &Windex{
 		logfile: logfile,
@@ -50,8 +50,8 @@ func (windex *Windex) Watch() {
 
 func (windex *Windex) Index() {
 	for {
-		windex.indexer.Parse()
-		windex.indexer.Flush(windex.LogData)
+		parsed_log_data, _ := windex.indexer.Parse(windex.LogData)
+		windex.indexer.Flush(parsed_log_data)
 	}
 }
 

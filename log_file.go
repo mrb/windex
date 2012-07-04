@@ -103,7 +103,6 @@ func (log_file *LogFile) flush(log_data chan []byte) {
 			}
 
 			if bytesRead != 0 {
-				//log.Indexer.flush()
 				log_data <- data
 			}
 		}

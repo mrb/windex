@@ -1,23 +1,24 @@
 package windex
 
 import (
-	logger "log"
+	"fmt"
 )
 
 type Indexer interface {
-	Parse() error
-	Flush(chan []byte) error
+	Parse(chan []byte) ([]byte, error)
+	Flush([]byte) error
 }
 
 type StdoutIndexer struct {
 }
 
-func (i *StdoutIndexer) Parse() (err error) {
-	return
+func (i *StdoutIndexer) Parse(log_data chan []byte) (parsed_log_data []byte, err error) {
+	parsed_log_data = <-log_data
+	return parsed_log_data, nil
 }
 
-func (i *StdoutIndexer) Flush(log_data chan []byte) (err error) {
-	logger.Print(<-log_data)
+func (i *StdoutIndexer) Flush(parsed_log_data []byte) (err error) {
+	fmt.Printf("%s", parsed_log_data)
 	return
 }
 
