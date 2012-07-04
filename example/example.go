@@ -18,10 +18,14 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Println("Opening and watching", fname)
-	log.Print(windex)
 
 	go windex.Watch()
-	//go windex.Index()
+	go windex.Index()
 
-	<-windex.Exit
+	select {
+	case exit := <-windex.Exit:
+		if exit {
+			return
+		}
+	}
 }

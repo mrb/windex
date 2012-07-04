@@ -1,15 +1,15 @@
 package windex
 
 import (
-	"log"
+	"time"
 )
 
 type Windex struct {
-	logfile      *LogFile
-	watcher      *Watcher
-	indexer      Indexer
-	log_to_index chan []byte
-	Exit         chan bool
+	logfile *LogFile
+	watcher *Watcher
+	indexer Indexer
+	LogData chan []byte
+	Exit    chan bool
 }
 
 func New(filename string) (windex *Windex, err error) {
@@ -23,14 +23,17 @@ func New(filename string) (windex *Windex, err error) {
 		return nil, err
 	}
 
+	indexer := NewStdoutIndexer()
+
 	exit := make(chan bool)
-	log_to_index := make(chan []byte)
+	log_data := make(chan []byte)
 
 	windex = &Windex{
-		logfile:      logfile,
-		watcher:      watcher,
-		Exit:         exit,
-		log_to_index: log_to_index,
+		logfile: logfile,
+		watcher: watcher,
+		indexer: indexer,
+		Exit:    exit,
+		LogData: log_data,
 	}
 
 	go windex.startwatchloop()
@@ -39,10 +42,17 @@ func New(filename string) (windex *Windex, err error) {
 }
 
 func (windex *Windex) Watch() {
-	windex.watcher.Watch(windex.logfile.Filename)
+	for {
+		time.Sleep(50 * time.Millisecond)
+		windex.watcher.Watch(windex.logfile.Filename)
+	}
 }
 
 func (windex *Windex) Index() {
+	for {
+		windex.indexer.Parse()
+		windex.indexer.Flush(windex.LogData)
+	}
 }
 
 func (windex *Windex) startwatchloop() {
@@ -50,8 +60,7 @@ func (windex *Windex) startwatchloop() {
 		select {
 		case ev := <-windex.watcher.Watcher.Event:
 			if ev != nil && ev.IsModify() && ev.Name == windex.logfile.Filename {
-				//windex.logfile.moveAndFlush()
-				log.Print(ev)
+				windex.logfile.Flush(windex.LogData)
 			}
 		case err := <-windex.watcher.Watcher.Error:
 			if err != nil {

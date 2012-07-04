@@ -23,8 +23,6 @@ func NewLogFile(filename string) (log_file *LogFile, err error) {
 		return nil, err
 	}
 
-	defer file.Close()
-
 	log_file = &LogFile{
 		File:     file,
 		Filename: filename,
@@ -39,54 +37,55 @@ func NewLogFile(filename string) (log_file *LogFile, err error) {
 	return log_file, nil
 }
 
-func (m *LogFileCursor) setDelta() (err error) {
-	if m.this <= 0 || m.last <= 0 {
+func (cursor *LogFileCursor) setDelta() (err error) {
+	if cursor.this <= 0 || cursor.last <= 0 {
 		err = ErrIndexZero
 		return err
 	}
 
-	m.delta = (m.this - m.last)
+	cursor.delta = (cursor.this - cursor.last)
 
 	return nil
 }
 
-func (log *LogFile) moveAndFlush() {
-	if ok := log.movePair(); ok {
-		log.flush()
+func (log_file *LogFile) Flush(log_data chan []byte) {
+	if ok := log_file.movePair(); ok {
+		log_file.flush(log_data)
 	}
 }
 
-func (log *LogFile) movePair() (ok bool) {
-	log.updateFileSize()
+func (log_file *LogFile) movePair() (ok bool) {
+	log_file.updateFileSize()
 
-	if log.cursor.last == 0 {
-		log.cursor.last = log.filesize
+	if log_file.cursor.last == 0 {
+		log_file.cursor.last = log_file.filesize
 		ok = false
 	} else {
-		log.cursor.this = log.filesize
+		log_file.cursor.this = log_file.filesize
 		ok = true
 	}
 
-	log.cursor.setDelta()
+	log_file.cursor.setDelta()
 
-	log.cursor.last = log.filesize
+	log_file.cursor.last = log_file.filesize
 
 	return
 }
 
-func (log *LogFile) updateFileSize() (err error) {
-	info, err := os.Stat(log.Filename)
+func (log_file *LogFile) updateFileSize() (err error) {
+	info, err := os.Stat(log_file.Filename)
 	if err != nil {
 		return err
 	}
 
-	log.filesize = info.Size()
+	log_file.filesize = info.Size()
 	return nil
 }
 
-func (log *LogFile) flush() {
-	delta := log.cursor.delta
-	file := log.File
+// TODO: Maybe break up, definitely handle errors better
+func (log_file *LogFile) flush(log_data chan []byte) {
+	delta := log_file.cursor.delta
+	file := log_file.File
 
 	if delta > 0 {
 		data := make([]byte, (delta))
@@ -105,7 +104,7 @@ func (log *LogFile) flush() {
 
 			if bytesRead != 0 {
 				//log.Indexer.flush()
-				os.Stdout.Write(data)
+				log_data <- data
 			}
 		}
 	} else {
