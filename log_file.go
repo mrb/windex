@@ -5,16 +5,16 @@ import (
 )
 
 type LogFile struct {
-	FileName string
-	File     *os.File
-	FileSize int64
-	Cursor   *LogFileCursor
+	filename string
+	file     *os.File
+	filesize int64
+	cursor   *LogFileCursor
 }
 
 type LogFileCursor struct {
-	Last  int64
-	This  int64
-	Delta int64
+	last  int64
+	this  int64
+	delta int64
 }
 
 func NewLogFile(filename string) (log_file *LogFile, err error) {
@@ -27,20 +27,20 @@ func NewLogFile(filename string) (log_file *LogFile, err error) {
 	defer file.Close()
 
 	return &LogFile{
-		File:     file,
-		FileName: filename,
-		FileSize: 0,
-		Pair:     &LogFileCursor{0, 0, 0},
-	}
+		file:     file,
+		filename: filename,
+		filesize: 0,
+		cursor:   &LogFileCursor{0, 0, 0},
+	}, nil
 }
 
 func (m *LogFileCursor) setDelta() (err error) {
-	if m.This <= 0 || m.Last <= 0 {
+	if m.this <= 0 || m.last <= 0 {
 		err = ErrIndexZero
 		return err
 	}
 
-	m.Delta = (m.This - m.Last)
+	m.delta = (m.this - m.last)
 
 	return nil
 }
@@ -54,35 +54,35 @@ func (log *LogFile) moveAndFlush() {
 func (log *LogFile) movePair() (ok bool) {
 	log.updateFileSize()
 
-	if log.Pair.Last == 0 {
-		log.Pair.Last = log.FileSize
+	if log.cursor.last == 0 {
+		log.cursor.last = log.filesize
 		ok = false
 	} else {
-		log.Pair.This = log.FileSize
+		log.cursor.this = log.filesize
 		ok = true
 	}
 
-	log.Pair.setDelta()
+	log.cursor.setDelta()
 
-	log.Pair.Last = log.FileSize
+	log.cursor.last = log.filesize
 
 	return
 }
 
 func (log *LogFile) updateFileSize() (err error) {
-	info, err := os.Stat(log.FileName)
+	info, err := os.Stat(log.filename)
 	if err != nil {
 		return err
 	}
 
-	log.FileSize = info.Size()
+	log.filesize = info.Size()
 	return nil
 }
 
 //
 func (log *LogFile) flush() {
-	delta := log.Pair.Delta
-	file := log.File
+	delta := log.cursor.delta
+	file := log.file
 
 	if delta > 0 {
 		data := make([]byte, (delta))
@@ -100,7 +100,7 @@ func (log *LogFile) flush() {
 			}
 
 			if bytesRead != 0 {
-				log.Indexer.flush()
+				//log.Indexer.flush()
 				os.Stdout.Write(data)
 			}
 		}
