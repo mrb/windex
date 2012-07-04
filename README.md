@@ -1,17 +1,7 @@
 ## Windex: Watch and Index
 
 ```go
-indexed_log, err := windex.New("log.txt")
-
-for {
-		time.Sleep(500 * time.Millisecond)
-		err = indexed_log.Watch()
-		if err != nil {
-			log.Print(err)
-		}
-	}
+windex, err = windex.New("logfile01.log")
+go windex.Watch()
+go windex.Index()
 ```
-
-### Coming Soon
-
-* Indexing

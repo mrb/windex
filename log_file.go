@@ -25,12 +25,18 @@ func NewLogFile(filename string) (log_file *LogFile, err error) {
 
 	defer file.Close()
 
-	return &LogFile{
+	log_file = &LogFile{
 		file:     file,
 		filename: filename,
 		filesize: 0,
 		cursor:   &LogFileCursor{0, 0, 0},
-	}, nil
+	}
+
+	if err = log_file.updateFileSize(); err != nil {
+		return nil, err
+	}
+
+	return log_file, nil
 }
 
 func (m *LogFileCursor) setDelta() (err error) {
@@ -78,7 +84,6 @@ func (log *LogFile) updateFileSize() (err error) {
 	return nil
 }
 
-//
 func (log *LogFile) flush() {
 	delta := log.cursor.delta
 	file := log.file
@@ -106,5 +111,4 @@ func (log *LogFile) flush() {
 	} else {
 		return
 	}
-
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/mrb/windex"
 	"log"
 	"os"
-	"time"
 )
 
 func main() {
@@ -14,17 +13,14 @@ func main() {
 
 	fname := os.Args[1]
 
-	indexed_log, err := windex.New(string(fname))
+	windex, err := windex.New(string(fname))
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("Opening and watching", fname)
 
-	for {
-		time.Sleep(500 * time.Millisecond)
-		err = indexed_log.Watch()
-		if err != nil {
-			log.Print(err)
-		}
-	}
+  go windex.Watch()
+  go windex.Index()
+
+  <-windex.Exit
 }
