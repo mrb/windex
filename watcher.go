@@ -1,11 +1,28 @@
 package windex
 
-import(
+import (
 	"github.com/howeyc/fsnotify"
 )
 
 type Watcher struct {
+	watcher *fsnotify.Watcher
+}
 
+func NewWatcher() (watcher *Watcher, err error) {
+	return &Watcher{
+		watcher: &fsnotify.Watcher,
+	}
+}
+
+func (log *LogFile) Watch() (err error) {
+	err = log.watchable()
+	if err != nil {
+		return
+	}
+
+	log.Watcher.Watch(log.FileName)
+
+	return
 }
 
 func (log *LogFile) watchable() (err error) {
@@ -24,17 +41,7 @@ func (log *LogFile) watchable() (err error) {
 	return
 }
 
-func (log *LogFile) Watch() (err error) {
-	err = log.watchable()
-	if err != nil {
-		return
-	}
-
-	log.Watcher.Watch(log.FileName)
-
-	return
-}
-
+/*
 go func() {
   for {
 	select {
@@ -48,5 +55,18 @@ go func() {
 	}
   }
 }()
+*/
+/*
 
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil, err
+	}
 
+	logfile := &LogFile{}
+
+	if err = log.updateFileSize(); err != nil {
+		return nil, err
+	}
+
+*/

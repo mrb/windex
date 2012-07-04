@@ -1,6 +1,6 @@
 package windex
 
-import(
+import (
 	"errors"
 )
 

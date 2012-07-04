@@ -1,10 +1,14 @@
 package windex
 
+import (
+	"os"
+)
+
 type LogFile struct {
-	FileName    string
-	File        *os.File
-	FileSize    int64
-	Cursor      *LogFileCursor
+	FileName string
+	File     *os.File
+	FileSize int64
+	Cursor   *LogFileCursor
 }
 
 type LogFileCursor struct {
@@ -13,14 +17,21 @@ type LogFileCursor struct {
 	Delta int64
 }
 
-func NewLogFile(filename string, ){
-    &LogFile{
+func NewLogFile(filename string) (log_file *LogFile, err error) {
+	file, err := os.Open(filename)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+
+	return &LogFile{
 		File:     file,
 		FileName: filename,
 		FileSize: 0,
 		Pair:     &LogFileCursor{0, 0, 0},
 	}
-
 }
 
 func (m *LogFileCursor) setDelta() (err error) {
@@ -34,7 +45,7 @@ func (m *LogFileCursor) setDelta() (err error) {
 	return nil
 }
 
-func (log *Log) moveAndFlush() {
+func (log *LogFile) moveAndFlush() {
 	if ok := log.movePair(); ok {
 		log.flush()
 	}
@@ -68,6 +79,7 @@ func (log *LogFile) updateFileSize() (err error) {
 	return nil
 }
 
+//
 func (log *LogFile) flush() {
 	delta := log.Pair.Delta
 	file := log.File

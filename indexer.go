@@ -1,18 +1,17 @@
 package windex
 
 type Indexer interface {
-  Parse() error
-  Flush() error
+	Parse() error
+	Flush() error
 }
 
 type StdoutIndexer struct {
-
 }
 
-func (i *Indexer) Parse() (err error) {
-
+func (i *StdoutIndexer) Parse() (err error) {
+	return
 }
 
-func (i *Indexer) Flush() (err error) {
-
+func (i *StdoutIndexer) Flush() (err error) {
+	return
 }

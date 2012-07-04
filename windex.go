@@ -1,51 +1,51 @@
 package windex
 
-import (
-	"os"
-)
-
 type Windex struct {
-  watcher *Watcher
-  logfile *LogFile
-  indexer *Indexer
-  logchan chan []byte
+	logfile      *LogFile
+	watcher      *Watcher
+	indexer      *Indexer
+	log_to_index chan []byte
+	exit         chan bool
 }
 
 /*
 
-watched_index, err = windex.New("logfile01.log")
-watched_index.Watch()
-watched_index.Index()
+windex, err = windex.New("logfile01.log")
+err = windex.Watch()
+err = windex.Index()
 // or .Index(StdoutIndex) where StdoutIndex implements
 // Index interface
+
+exit <- windex.exit
 
 Windex methods orchestrate between logfile and indexer,
 getting signals from watcher to know when to act
 
 []byte channel between logfile and indexer
+bool channel between windex and the outside world
 
 */
 func New(filename string) (windex *Windex, err error) {
-	Watcher     *fsnotify.Watcher
-	
-        if err != nil {
-		return nil, err
-	}
-
-	defer file.Close()
-
-	watcher, err := fsnotify.NewWatcher()
+	logfile, err := NewLogFile(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	logfile := &LogFile{}
-
-	if err = log.updateFileSize(); err != nil {
+	watcher, err := NewWatcher()
+	if err != nil {
 		return nil, err
 	}
 
-	return log, nil
+	return &Windex{
+		logfile: logfile,
+		watcher: watcher,
+	}, nil
 }
 
+func (windex *Windex) Watch() (err error) {
 
+}
+
+func (windex *Windex) Index() (err error) {
+
+}
