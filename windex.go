@@ -1,5 +1,9 @@
 package windex
 
+import (
+	"log"
+)
+
 type Windex struct {
 	logfile      *LogFile
 	watcher      *Watcher
@@ -35,10 +39,7 @@ func New(filename string) (windex *Windex, err error) {
 }
 
 func (windex *Windex) Watch() {
-	err := windex.watcher.Watch(windex.logfile.filename)
-	if err != nil {
-		windex.Exit <- true
-	}
+	windex.watcher.Watch(windex.logfile.Filename)
 }
 
 func (windex *Windex) Index() {
@@ -47,11 +48,12 @@ func (windex *Windex) Index() {
 func (windex *Windex) startwatchloop() {
 	for {
 		select {
-		case ev := <-windex.watcher.watcher.Event:
-			if ev != nil && ev.IsModify() && ev.Name == windex.logfile.filename {
-				windex.logfile.moveAndFlush()
+		case ev := <-windex.watcher.Watcher.Event:
+			if ev != nil && ev.IsModify() && ev.Name == windex.logfile.Filename {
+				//windex.logfile.moveAndFlush()
+				log.Print(ev)
 			}
-		case err := <-windex.watcher.watcher.Error:
+		case err := <-windex.watcher.Watcher.Error:
 			if err != nil {
 				windex.Exit <- true
 			}

@@ -5,8 +5,8 @@ import (
 )
 
 type LogFile struct {
-	filename string
-	file     *os.File
+	Filename string
+	File     *os.File
 	filesize int64
 	cursor   *LogFileCursor
 }
@@ -26,8 +26,8 @@ func NewLogFile(filename string) (log_file *LogFile, err error) {
 	defer file.Close()
 
 	log_file = &LogFile{
-		file:     file,
-		filename: filename,
+		File:     file,
+		Filename: filename,
 		filesize: 0,
 		cursor:   &LogFileCursor{0, 0, 0},
 	}
@@ -75,7 +75,7 @@ func (log *LogFile) movePair() (ok bool) {
 }
 
 func (log *LogFile) updateFileSize() (err error) {
-	info, err := os.Stat(log.filename)
+	info, err := os.Stat(log.Filename)
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func (log *LogFile) updateFileSize() (err error) {
 
 func (log *LogFile) flush() {
 	delta := log.cursor.delta
-	file := log.file
+	file := log.File
 
 	if delta > 0 {
 		data := make([]byte, (delta))

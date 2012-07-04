@@ -5,17 +5,20 @@ import (
 )
 
 type Watcher struct {
-	watcher *fsnotify.Watcher
+	Watcher *fsnotify.Watcher
 }
 
 func NewWatcher() (watcher *Watcher, err error) {
+	fswatcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil, err
+	}
+
 	return &Watcher{
-		watcher: &fsnotify.Watcher{},
+		Watcher: fswatcher,
 	}, nil
 }
 
-func (watcher *Watcher) Watch(filename string) (err error) {
-	watcher.Watch(filename)
-
-	return
+func (watcher *Watcher) Watch(filename string) {
+	watcher.Watcher.Watch(filename)
 }
