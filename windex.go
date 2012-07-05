@@ -55,6 +55,10 @@ func (windex *Windex) Index() {
 	}
 }
 
+func (windex *Windex) Filename() (filename string) {
+	return windex.logfile.Filename
+}
+
 func (windex *Windex) startwatchloop() {
 	for {
 		select {

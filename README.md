@@ -1,6 +1,6 @@
 ## Windex: Watch and Index
 
-Windex is a library for watching log files and indexing their data.
+Windex is a library for concurrently watching log files and indexing their data.
 
 A `Watcher` provides cross-platform file system notifications via
 `github.com/howeyc/fsnotify`. These events help keep track of changes to the
