@@ -81,9 +81,14 @@ case exit := <-windex.Exit:
 }
 ```
 
-### Example
+### Examples
 
 The above is paraphrased from the example program in `example/stdoutindexer/example.go`. There is an example that uses the above Redis Indexer in `example/redisindexer/example.go`
+
+### TODO
+
+* Bring back the tests
+* Add `wcld` like Indexer
 
 ### Credits
 
