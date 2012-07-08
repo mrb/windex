@@ -12,7 +12,7 @@ type Windex struct {
 	Exit    chan bool
 }
 
-func New(filename string) (windex *Windex, err error) {
+func New(filename string, custom_indexer ...Indexer) (windex *Windex, err error) {
 	logfile, err := NewLogFile(filename)
 	if err != nil {
 		return nil, err
@@ -23,7 +23,13 @@ func New(filename string) (windex *Windex, err error) {
 		return nil, err
 	}
 
-	indexer := NewStdoutIndexer()
+	var indexer Indexer
+
+	if len(custom_indexer) == 0 {
+		indexer = NewStdoutIndexer()
+	} else {
+		indexer = custom_indexer[0]
+	}
 
 	exit := make(chan bool)
 	log_data := make(chan []byte, 5)

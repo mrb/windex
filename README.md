@@ -25,6 +25,39 @@ with `Flush([]byte)`. Since `Parse` has access to the data, it will be a
 powerful step toward implementing `Indexers` which can parse and flush data to
 any number of a variety of external sources: Redis, Postgres, Statsd, etc.
 
+Here's an example naive implementation of a Redis Indexer:
+
+```go
+type RedisIndexer struct {
+	address string
+}
+
+func (i *RedisIndexer) Parse(log_data chan []byte) (parsed_log_data []byte, err error) {
+	parsed_log_data = <-log_data
+	return parsed_log_data, nil
+}
+
+func (i *RedisIndexer) Flush(parsed_log_data []byte) (err error) {
+	redis, err := redis.Dial("tcp", i.address)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	redis.Do("lpush", "errorz", parsed_log_data)
+
+	log.Print("Data Pushed: ", len(parsed_log_data), " bytes")
+
+	return
+}
+
+func NewRedisIndexer(address string) (stdout *RedisIndexer) {
+	return &RedisIndexer{
+		address: address,
+	}
+}
+```
+
 ### Usage
 
 ```go
@@ -50,7 +83,7 @@ case exit := <-windex.Exit:
 
 ### Example
 
-The above is paraphrased from the example program in `example/example.go`
+The above is paraphrased from the example program in `example/stdoutindexer/example.go`. There is an example that uses the above Redis Indexer in `example/redisindexer/example.go`
 
 ### Credits
 
